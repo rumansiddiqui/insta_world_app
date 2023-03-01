@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.urls import path
 
-from account.views import UserViewCR
+from account.views import UserViewCR, UserViewRUD
 
 urlpatterns = [
-    path('', UserViewCR.as_view()),
+    path('api', UserViewCR.as_view()),
+    path('api/<int:pk>/', UserViewRUD.as_view()),
 
 ]

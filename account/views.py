@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render
+from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin,CreateModelMixin, \
     UpdateModelMixin, DestroyModelMixin
+from rest_framework.response import Response
 
 from account.serializers import UserSerializer
 
@@ -18,7 +20,6 @@ class UserViewCR(GenericAPIView, ListModelMixin, CreateModelMixin):
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-
 
 class UserViewRUD(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin):
     queryset = User.objects.all()
