@@ -1,35 +1,26 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin, \
-    UpdateModelMixin, DestroyModelMixin
-from rest_framework.generics import GenericAPIView
-
-from account.serializers import UserSerializer
+from rest_framework.viewsets import GenericViewSet
+from account.serializers import UserSerializer, SignUpSerializers, SignInSerializers
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, \
+    DestroyModelMixin, RetrieveModelMixin
 
 
 # Create your views here.
-class UserModelApi(GenericAPIView, ListModelMixin, CreateModelMixin):
+class UserModelApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
+                   DestroyModelMixin, RetrieveModelMixin):
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-class UpdateDeleteApi(GenericAPIView, UpdateModelMixin, DestroyModelMixin, RetrieveModelMixin):
-    serializer_class = UserSerializer
+class SignUpApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
+                DestroyModelMixin, RetrieveModelMixin):
+    serializer_class = SignUpSerializers
     queryset = User.objects.all()
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+class SignInApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
+                DestroyModelMixin, RetrieveModelMixin):
+    queryset = User.objects.all()
 
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
-
-
+    serializer_class = SignInSerializers
