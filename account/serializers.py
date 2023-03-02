@@ -6,9 +6,14 @@ import re
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ('id', 'username', 'password', 'first_name', 'last_name', 'email')
+        read_only_fields = ["id"]
+        extra_kwargs = {'first_name': {'required': True},
+                        'last_name': {'required': True},
+                        'email': {'required': True}}
 
 
     def validate_password(self, value):
@@ -20,22 +25,22 @@ class UserSerializer(serializers.ModelSerializer):
         return make_password(value)
 
     #
-    def validate_email(self, value):
-        if value == "":
-            raise serializers.ValidationError("Email can not be empty")
-        return value
+    # def validate_email(self, value):
+    #     if value == "":
+    #         raise serializers.ValidationError("Email can not be empty")
+    #     return value
 
-    def validate_first_name(self, value):
-        if value == "":
-            raise serializers.ValidationError("First Name should not be blank")
-        elif len(value)<2:
-            raise serializers.ValidationError("First Name is too short")
-
-        return value
-
-    def validate_last_name(self, value):
-        if value == "":
-            raise serializers.ValidationError("Last Name should not be blank")
-        elif len(value)<2:
-            raise serializers.ValidationError("Last Name is too short")
-        return value
+    # def validate_first_name(self, value):
+    #     if value == "":
+    #         raise serializers.ValidationError("First Name should not be blank")
+    #     elif len(value)<2:
+    #         raise serializers.ValidationError("First Name is too short")
+    #
+    #     return value
+    #
+    # def validate_last_name(self, value):
+    #     if value == "":
+    #         raise serializers.ValidationError("Last Name should not be blank")
+    #     elif len(value)<2:
+    #         raise serializers.ValidationError("Last Name is too short")
+    #     return value
