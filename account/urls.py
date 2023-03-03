@@ -6,7 +6,8 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 
-router.register('api', views.UserView)
+router.register('login', views.UserLogIn),
+router.register('register', views.UserRegister),
 
 urlpatterns = [
     # path('api', UserViewCR.as_view()),
