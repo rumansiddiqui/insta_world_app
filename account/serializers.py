@@ -1,5 +1,4 @@
 import re
-
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import serializers, request
@@ -62,7 +61,16 @@ class SignInSerializers(serializers.ModelSerializer):
         model = User
         fields = ('email', 'password')
 
-    # def validate_email(self, value):
-    #     if value.is_valid():
+    def validate(self, data):
+        email = data.get('email')
+        password = data.get('password')
+        user = authenticate(email=email, password=password)
+        if not user:
+            raise serializers.ValidationError("please register before signin")
+        return data
+
+
+
+
 
 
