@@ -6,9 +6,9 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 
-router.register("user_api", views.UserModelApi)
-router.register("sign_api", views.SignUpApi)
-router.register("signin_api", views.SignInApi)
+router.register("user/", views.UserModelApi)
+router.register("signup/", views.SignUpApi)
+router.register("signin/", views.SignInApi)
 urlpatterns = [
 
 ]+router.urls

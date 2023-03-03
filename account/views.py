@@ -19,8 +19,10 @@ class SignUpApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMix
     queryset = User.objects.all()
 
 
-class SignInApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
-                DestroyModelMixin, RetrieveModelMixin):
+class SignInApi(GenericViewSet):
+    serializer_class = SignInSerializers
     queryset = User.objects.all()
 
-    serializer_class = SignInSerializers
+
+
+
