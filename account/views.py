@@ -43,15 +43,15 @@ class UserLogIn(GenericViewSet, CreateModelMixin):
                 'message': "Successfully Logged In",
             }, status=status.HTTP_200_OK)
         return Response({
-            'data': serializer.errors,
-            'message': 'Invalid username and password!',
-        }, status=status.HTTP_404_NOT_FOUND)
+            'data': serializer.errors}, status=status.HTTP_404_NOT_FOUND)
 
 
 class UserRegister(GenericViewSet, CreateModelMixin):
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
     http_method_names = ['post']
+    # permission_classes = [IsAuthenticated]
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)

@@ -73,7 +73,7 @@ class UserChangePasswordSerializer(serializers.ModelSerializer):
         user = self.context.get('user')
         if password != password2:
             raise serializers.ValidationError("Password and confirm password does not match!")
-        user.make_password = password
+        user.password = make_password(password)
         user.save()
         return data
 
