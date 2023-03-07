@@ -10,8 +10,8 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=20, min_length=3, required=True)
     last_name = serializers.CharField(max_length=20, min_length=3, required=True)
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(max_length=20, min_length=8, required=True)
-    confirm_password = serializers.CharField(max_length=20, min_length=8, required=True)
+    password = serializers.CharField(max_length=20, min_length=8, required=True, write_only=True)
+    confirm_password = serializers.CharField(max_length=20, min_length=8, required=True, write_only=True)
 
     class Meta:
         model = User
@@ -21,7 +21,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         regex1 = re.compile('[@_!#$%^&*()<>?/}{~:]')
         if regex1.search(value) is None:
             raise serializers.ValidationError("Password should contain special character!")
-        return make_password(value)
+        return value
 
     def validate(self, data):
         """
@@ -33,7 +33,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError("Email already exists!")
-        if password == c_password:
+        if password != c_password:
             raise serializers.ValidationError("Password and confirm password does not match!")
         return data
 
@@ -58,14 +58,22 @@ class UserLogInSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username", "password")
 
-    def validate(self, data):
-        """
-            Validate if username or password is incorrect.
-        """
-        username = data.get('username')
-        password = data.get('password')
 
-        user = authenticate(username=username, password=password)
-        if not user:
-            raise serializers.ValidationError("No such user found. Register First!")
+class UserChangePasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=20, write_only=True, style={'input_type': 'password'})
+    password2 = serializers.CharField(max_length=20, write_only=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = User
+        fields = ['password', 'password2']
+
+    def validate(self, data):
+        password = data.get('password')
+        password2 = data.get('password2')
+        user = self.context.get('user')
+        if password != password2:
+            raise serializers.ValidationError("Password and confirm password does not match!")
+        user.make_password = password
+        user.save()
         return data
+
