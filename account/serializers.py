@@ -21,7 +21,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         regex1 = re.compile('[@_!#$%^&*()<>?/}{~:]')
         if regex1.search(value) is None:
             raise serializers.ValidationError("Password should contain special character!")
-        return make_password(value)
+        return value
 
     def validate(self, data):
         """
