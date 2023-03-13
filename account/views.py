@@ -1,11 +1,14 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import status, serializers
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer
+from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
+    DeleteUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -75,4 +78,14 @@ class UserChangePassword(GenericViewSet, CreateModelMixin):
             return Response({"message": "Password changed successfully"},
                             status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteUser(GenericViewSet, DestroyModelMixin):
+    queryset = User.objects.all()
+    serializer_class = DeleteUserSerializer
+    # http_method_names = ['delete']
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAdminUser]
+
+
 
