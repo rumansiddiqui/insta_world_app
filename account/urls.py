@@ -1,20 +1,17 @@
 from django.urls import path
 from rest_framework import routers
-
-from . import views
-from .views import SignUpAPI
+from .views import SignUpAPI, ProfileAPI, PostAPI
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView as login,
+    TokenRefreshView as refreshlogin,
+)
 
 router = routers.SimpleRouter()
 router.register('signupapi', SignUpAPI, 'signupapi')
-
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+router.register('profile', ProfileAPI, 'profile')
+router.register('post', PostAPI, 'post')
 
 urlpatterns = [
-                  path('signup', views.sign_up, name='signup'),
-                  path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-                  path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
+                  path('login/', login.as_view(), name='login'),
+                  path('refreshlogin/', refreshlogin.as_view(), name='refreshlogin'),
               ] + router.urls
