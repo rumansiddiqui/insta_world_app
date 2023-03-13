@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from rest_framework import serializers, request
 from rest_framework.exceptions import ValidationError
 
+from account.models import Profile, Post, Images, Videos
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,10 +38,10 @@ class UserSerializer(serializers.ModelSerializer):
                                   "special character.")
         return value
 
-    def validate(self, data):
-        if data.get("first_name").lower() == "aman" and data.get("last_name").lower() != "kumar":
-            raise serializers.ValidationError("lastname must be kumar")
-        return data
+    # def validate(self, data):
+    #     if data.get("first_name").lower() == "aman" and data.get("last_name").lower() != "kumar":
+    #         raise serializers.ValidationError("lastname must be kumar")
+    #     return data
 
 
 class SignUpSerializers(serializers.ModelSerializer):
@@ -50,8 +52,9 @@ class SignUpSerializers(serializers.ModelSerializer):
     def validate_password(self, data):
         print(data)
         if re.search("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", data) is None:
-            raise serializers.ValidationError("Your password must contain at least 1 number, 1 uppercase, 1 lowercase and 1 "
-                                  "special character.")
+            raise serializers.ValidationError(
+                "Your password must contain at least 1 number, 1 uppercase, 1 lowercase and 1 "
+                "special character.")
 
         return data
 
@@ -70,7 +73,37 @@ class SignInSerializers(serializers.ModelSerializer):
         return data
 
 
+class ProfileSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('id', 'user', 'followers', 'followings')
 
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Images
+        fields = ('id', 'images')
 
+
+class VideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Videos
+        fields = ('id', 'videos')
+
+
+class PostSerializers(serializers.ModelSerializer):
+    likes_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    images = ImageSerializer(many=True, required=False)
+    videos = VideoSerializer(many=True, required=False)
+
+    def get_comment_count(self, obj):
+        return obj.comments.count()
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    class Meta:
+        model = Post
+        fields = '__all__'
 
