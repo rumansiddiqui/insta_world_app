@@ -10,6 +10,7 @@ router.register('login', views.UserLogIn, basename='login'),
 router.register('register', views.UserRegister, basename='register'),
 router.register('changepassword', views.UserChangePassword, basename='changepassword'),
 router.register('deleteuser', views.DeleteUser, basename='deleteuser'),
+router.register('post', views.UserPost, basename='post')
 
 urlpatterns = [
     path('', include(router.urls))

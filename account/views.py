@@ -1,15 +1,18 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import status, serializers
-from rest_framework.authentication import BasicAuthentication, SessionAuthentication
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin,\
+                                    ListModelMixin
 from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
-    DeleteUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from account.models import Post
+from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
+    DeleteUserSerializer, UserPostSerializer
 
 
 def get_tokens_for_user(user):
@@ -86,6 +89,24 @@ class DeleteUser(GenericViewSet, DestroyModelMixin):
     # http_method_names = ['delete']
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAdminUser]
+
+
+class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin,
+               DestroyModelMixin):
+    queryset = Post.objects.all()
+    serializer_class = UserPostSerializer
+    # http_method_names = ['post']
+    # authentication_classes = [BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.serializer_class(data=request.data)
+    #     if serializer.is_valid(raise_exception=True):
+    #         user = serializer.create(serializer.validated_data)
+    #         return Response({"data": serializer.data, "message": "Post created successfully"},
+    #                         status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

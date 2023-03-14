@@ -5,6 +5,8 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 import re
 
+from account.models import Post
+
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=20, min_length=3, required=True)
@@ -82,5 +84,40 @@ class DeleteUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
+
+class UserPostSerializer(serializers.ModelSerializer):
+    media = serializers.FileField(max_length=50)
+    caption = serializers.CharField(max_length=100)
+    like_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    has_liked = serializers.SerializerMethodField()
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def get_has_liked(self, obj):
+        if obj.user in obj.likes.all():
+            return True
+        return False
+
+    def get_like_count(self, obj):
+        return obj.likes.count()
+
+    def get_comment_count(self, obj):
+        return obj.comments.count()
+
+    # def create(self, validated_data):
+    #     user = User.objects.get(id=validated_data['user'])
+    #     likes = User.objects.filter()
+    #     return Post.objects.create(
+    #         user=user,
+    #         media=validated_data['media'],
+    #         caption=validated_data['caption'],
+    #         has_liked=validated_data['has_liked'],
+    #         likes=validated_data['password'],
+    #         comments=validated_data['password'],
+    #         created_on=validated_data['password']
+    #     )
 
 
