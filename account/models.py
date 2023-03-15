@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Profile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     followers = models.ManyToManyField(User, related_name="users_followers", blank=True)
     followings = models.ManyToManyField(User, related_name="users_followings", blank=True)
     profile_pic = models.ImageField(upload_to="img/")
@@ -38,7 +38,6 @@ class Comment(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     images = models.ManyToManyField(Images, blank=True)
     videos = models.ManyToManyField(Videos, blank=True)
     post_description = models.CharField(max_length=100, null=True, blank=True)
