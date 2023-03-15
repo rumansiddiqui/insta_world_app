@@ -5,7 +5,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 import re
 
-from account.models import Post
+from account.models import Post, Profile
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -75,7 +75,7 @@ class UserChangePasswordSerializer(serializers.ModelSerializer):
         user = self.context.get('user')
         if password != password2:
             raise serializers.ValidationError("Password and confirm password does not match!")
-        user.make_password = password
+        user.password = make_password(password)
         user.save()
         return data
 
@@ -92,6 +92,7 @@ class UserPostSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
         fields = '__all__'
@@ -121,3 +122,9 @@ class UserPostSerializer(serializers.ModelSerializer):
     #     )
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    # post = UserPostSerializer(many=True, required=False, read_only=True)
+    # post = serializers.ReadOnlyField(source='user')
+    class Meta:
+        model = Profile
+        fields = ['id', 'user', 'avatar', 'bio', 'follow']

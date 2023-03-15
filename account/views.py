@@ -2,17 +2,18 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import status, serializers
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin,\
-                                    ListModelMixin
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin, \
+    ListModelMixin
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from account.models import Post
+from account.models import Post, Profile
 from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
-    DeleteUserSerializer, UserPostSerializer
+    DeleteUserSerializer, UserPostSerializer, UserProfileSerializer
 
 
 def get_tokens_for_user(user):
@@ -31,6 +32,7 @@ class UserLogIn(GenericViewSet, CreateModelMixin):
     queryset = User.objects.all()
     serializer_class = UserLogInSerializer
     http_method_names = ['post']
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -42,10 +44,10 @@ class UserLogIn(GenericViewSet, CreateModelMixin):
             user = authenticate(username=username, password=password)
             if not user:
                 raise serializers.ValidationError("No such user found. Register First!")
-            user_token = get_tokens_for_user(user)
+            # user_token = get_tokens_for_user(user)
 
             return Response({
-                "token": user_token, "data": serializer.data,
+                "data": serializer.data,
                 'message': "Successfully Logged In",
             }, status=status.HTTP_200_OK)
         return Response({
@@ -108,5 +110,7 @@ class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMi
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
+class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin,
+                  DestroyModelMixin):
+    queryset = Profile.objects.all()
+    serializer_class = UserProfileSerializer

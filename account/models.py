@@ -8,6 +8,7 @@ def user_directory(instance, filename):
     return f"{0}/{1}".format(instance.user.id, filename)
 
 
+
 class Comment(models.Model):
     text = models.CharField(max_length=100, null=True, blank=True)
     user = models.ForeignKey(User, related_name='user_likes', on_delete=models.CASCADE)
@@ -17,6 +18,15 @@ class Comment(models.Model):
     def __str__(self):
         return self.text
 
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    avatar = models.ImageField(upload_to='profile/pic/')
+    follow = models.ManyToManyField(User, related_name='user_follow', blank=True)
+    bio = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.user.username
 
 class Post(models.Model):
     user = models.ForeignKey(User, related_name='post_user', on_delete=models.CASCADE)
@@ -29,6 +39,11 @@ class Post(models.Model):
 
     # def __str__(self):
     #     return f"{self.user} Posted this"
+
+
+
+
+
 
 
 
