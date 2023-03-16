@@ -8,15 +8,15 @@ def user_directory(instance, filename):
     return f"{0}/{1}".format(instance.user.id, filename)
 
 
-
 class Comment(models.Model):
     text = models.CharField(max_length=100, null=True, blank=True)
     user = models.ForeignKey(User, related_name='user_likes', on_delete=models.CASCADE)
+    likes = models.ManyToManyField(User, blank=True, related_name="comment_like")
     commented_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.text
+        return self.user.get_username()
 
 
 class Profile(models.Model):
@@ -26,7 +26,8 @@ class Profile(models.Model):
     bio = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.user.username
+        return self.user.get_username()
+
 
 class Post(models.Model):
     user = models.ForeignKey(User, related_name='post_user', on_delete=models.CASCADE)
@@ -37,30 +38,5 @@ class Post(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
-    # def __str__(self):
-    #     return f"{self.user} Posted this"
-
-
-
-
-
-
-
-
-# class Like(models.Model):
-#     user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE)
-#     post = models.ForeignKey(Post, related_name='post', on_delete=models.CASCADE)
-#     is_like = models.BooleanField(default=True)
-#     liked_on = models.DateTimeField(auto_now_add=True)
-#     updated_on = models.DateTimeField(auto_now=True)
-
-
-# class Follow(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     follower = models.ForeignKey(User, on_delete=models.CASCADE)
-#     is_follow = models.BooleanField(default=True)
-#     followed_on = models.DateTimeField(auto_now_add=True)
-#     updated_on = models.DateTimeField(auto_now=True)
-
-
-
+    def __str__(self):
+        return self.user.get_username()

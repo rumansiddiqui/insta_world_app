@@ -12,6 +12,9 @@ router.register('changepassword', views.UserChangePassword, basename='changepass
 router.register('deleteuser', views.DeleteUser, basename='deleteuser'),
 router.register('post', views.UserPost, basename='post'),
 router.register('profile', views.UserProfile, basename='profile'),
+router.register('allpost', views.AllUserPost, basename='allpost')
+
+
 
 urlpatterns = [
     path('', include(router.urls))
