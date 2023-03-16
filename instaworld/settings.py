@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -134,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #SimpleJWT Settings
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 
     "AUTH_HEADER_TYPES": ("Bearer",),
@@ -162,3 +163,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
