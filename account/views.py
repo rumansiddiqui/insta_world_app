@@ -8,33 +8,21 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
 from account.models import Post, Profile
 from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
-    DeleteUserSerializer, UserPostSerializer, UserProfileSerializer, AllUserPostSerializer
-
-
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
-
-
-# Create your views here.
+    DeleteUserSerializer, UserPostSerializer, UserProfileSerializer, UserFollowPostSerializer, \
+    AllUserPostSerializer
+from account.utils import get_tokens_for_user
 
 
 class UserLogIn(GenericViewSet, CreateModelMixin):
+    """View for login user"""
     queryset = User.objects.all()
     serializer_class = UserLogInSerializer
     http_method_names = ['post']
 
-    # permission_classes = [IsAuthenticated]
-
     def create(self, request, *args, **kwargs):
+
         data = request.data
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
@@ -55,26 +43,24 @@ class UserLogIn(GenericViewSet, CreateModelMixin):
 
 
 class UserRegister(GenericViewSet, CreateModelMixin):
+    """View to register user"""
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
     http_method_names = ['post']
-    # permission_classes = [IsAuthenticated]
-
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.create(serializer.validated_data)
-            # user_token = get_tokens_for_user(user)
             return Response({"message": "User created successfully"},
                             status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserChangePassword(GenericViewSet, UpdateModelMixin):
-    # queryset = User.objects.all()
+    """View to change password of the user"""
+    queryset = User
     serializer_class = UserChangePasswordSerializer
-    # http_method_names = ['patch']
     permission_classes = [IsAuthenticated]
 
     def get_object(self, queryset=None):
@@ -113,46 +99,70 @@ class UserChangePassword(GenericViewSet, UpdateModelMixin):
 
 
 class DeleteUser(GenericViewSet, DestroyModelMixin):
+    """View for deleting user by admin user only"""
     queryset = User.objects.all()
     serializer_class = DeleteUserSerializer
-    # http_method_names = ['delete']
     authentication_classes = [BasicAuthentication]
     permission_classes = [IsAdminUser]
 
 
+class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin):
+    """View to get, update and create post of login user"""
 
-class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin,
-               DestroyModelMixin):
-    # queryset = Post.objects.all()
+    queryset = Post
     serializer_class = UserPostSerializer
-    # http_method_names = ['post']
     permission_classes = [IsAuthenticated]
 
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.serializer_class(data=request.data)
-    #     if serializer.is_valid(raise_exception=True):
-    #         user = serializer.create(serializer.validated_data)
-    #         return Response({"data": serializer.data, "message": "Post created successfully"},
-    #                         status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    # def perform_create(self, serializer):
+    #     """ Override perform_create method to make
+    #     sure the post is posted by the login user"""
+    #     serializer.save(user=self.request.user)
 
     def get_queryset(self):
         user = self.request.user
         return Post.objects.filter(user=user)
 
-class AllUserPost(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin,
-               DestroyModelMixin):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if serializer.validated_data['user'] != request.user:
+            return Response({'error': 'You cannot post for another user.'}, status=status.HTTP_403_FORBIDDEN)
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class AllUserPost(GenericViewSet, ListModelMixin):
+    """View to get post of all user"""
     queryset = Post.objects.all()
     serializer_class = AllUserPostSerializer
-    # http_method_names = ['post']
     permission_classes = [IsAuthenticated]
 
 
-class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin,
-                  DestroyModelMixin):
-    queryset = Profile.objects.all()
+class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin):
+    """View to get, update and create user profile"""
+    queryset = Profile
     serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Profile.objects.filter(user=user)
+
+    # def perform_create(self, serializer):
+    #     """ Override perform_create method to make
+    #     sure the post is posted by the login user"""
+    #     serializer.save(user=self.request.user)
 
 
+class UserFollowerPost(GenericViewSet, ListModelMixin):
+    """View to get post of the users followed by user"""
+    queryset = Post
+    serializer_class = UserFollowPostSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        follower_post = self.request.user.profile.follow.all()
+        return Post.objects.filter(user__in=follower_post)
