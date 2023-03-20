@@ -10,8 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from account.models import Post, Profile
 from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
-    DeleteUserSerializer, UserPostSerializer, UserProfileSerializer, UserFollowPostSerializer, \
-    AllUserPostSerializer
+    DeleteUserSerializer, UserPostSerializer, UserProfileSerializer, UserFollowPostSerializer, UserSerializer
 from account.utils import get_tokens_for_user
 
 
@@ -130,14 +129,13 @@ class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixi
             return Response({'error': 'You cannot post for another user.'}, status=status.HTTP_403_FORBIDDEN)
 
         self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AllUserPost(GenericViewSet, ListModelMixin):
     """View to get post of all user"""
     queryset = Post.objects.all()
-    serializer_class = AllUserPostSerializer
+    serializer_class = UserPostSerializer
     permission_classes = [IsAuthenticated]
 
 
@@ -166,3 +164,10 @@ class UserFollowerPost(GenericViewSet, ListModelMixin):
     def get_queryset(self):
         follower_post = self.request.user.profile.follow.all()
         return Post.objects.filter(user__in=follower_post)
+
+
+class UserView(GenericViewSet, ListModelMixin):
+    """View to get post of the users followed by user"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    # permission_classes = [IsAuthenticated]

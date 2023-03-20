@@ -4,6 +4,36 @@ import re
 from account.models import Post, Profile
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    """ Serializer for Profile model """
+    # post = UserPostSerializer(many=True, read_only=True, source='user.post')
+    follow_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'user', 'avatar', 'bio', 'follow_count', 'following_count']
+        # read_only_fields = ['user', 'follow_count', 'following_count']
+
+    def get_follow_count(self, obj: Profile) -> int:
+        """Give follow count of the user"""
+        return obj.follow.count()
+
+    def get_following_count(self, obj: Profile) -> int:
+        """Give following count of the user"""
+        return obj.user.user_follow.count()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """ Serializer for showing post of the follower user follow"""
+    profile = UserProfileSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        # fields = '__all__'
+        exclude = ['password', 'last_login']
+
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     """Serializer to Register user"""
     first_name = serializers.CharField(max_length=20, min_length=3, required=True)
@@ -71,6 +101,7 @@ class UserChangePasswordSerializer(serializers.ModelSerializer):
 
 class DeleteUserSerializer(serializers.ModelSerializer):
     """Serializer to delete user for User model"""
+
     class Meta:
         model = User
         fields = '__all__'
@@ -82,10 +113,12 @@ class UserPostSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
     # user = serializers.ReadOnlyField(source='user.id')
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Post
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ['likes', 'comments']
         # read_only_fields = ['user', 'likes', 'created_on', 'updated_on', 'comments',
         #                     'like_count', 'comment_count', 'has_liked']
 
@@ -107,37 +140,11 @@ class UserPostSerializer(serializers.ModelSerializer):
         return obj.comments.count()
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    """ Serializer for Profile model """
-    post = UserPostSerializer(many=True, read_only=True, source='user.post_set')
-    follow_count = serializers.SerializerMethodField()
-    following_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Profile
-        fields = ['id', 'user', 'avatar', 'bio', 'follow_count', 'following_count', 'post']
-        # read_only_fields = ['user', 'follow_count', 'following_count']
-
-    def get_follow_count(self, obj: Profile) -> int:
-        """Give follow count of the user"""
-        return obj.follow.count()
-
-    def get_following_count(self, obj: Profile) -> int:
-        """Give following count of the user"""
-        return obj.user.user_follow.count()
 
 
 class UserFollowPostSerializer(UserPostSerializer):
     """ Serializer for showing post of the follower user follow"""
-    class Meta:
-        model = Post
-        fields = '__all__'
-        # read_only_fields = ['user', 'likes', 'created_on', 'updated_on', 'comments',
-        #                     'like_count', 'comment_count', 'has_liked']
 
-
-class AllUserPostSerializer(serializers.ModelSerializer):
-    """ Serializer to show all user post"""
     class Meta:
         model = Post
         fields = '__all__'

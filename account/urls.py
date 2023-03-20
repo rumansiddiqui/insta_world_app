@@ -13,7 +13,8 @@ router.register('deleteuser', views.DeleteUser, basename='deleteuser'),
 router.register('post', views.UserPost, basename='post'),
 router.register('profile', views.UserProfile, basename='profile'),
 router.register('allpost', views.AllUserPost, basename='allpost')
-router.register('followpost', views.UserFollowerPost, basename='followpost')
+router.register('followpost', views.UserFollowerPost, basename='followpost'),
+router.register('user', views.UserView, basename='user'),
 
 
 urlpatterns = [
