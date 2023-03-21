@@ -1,37 +1,37 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 import re
-from account.models import Post, Profile
+from account.models import Profile
+from account.serializers.user_serializers import UserSerializer
+from post.serializers.post_serializers import UserPostSerializer
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """ Serializer for Profile model """
-    # post = UserPostSerializer(many=True, read_only=True, source='user.post')
+    # post = UserPostSerializer(many=True, read_only=True, source='post_set')
+    # post = serializers.SerializerMethodField()
     follow_count = serializers.SerializerMethodField()
     following_count = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Profile
         fields = ['id', 'user', 'avatar', 'bio', 'follow_count', 'following_count']
-        # read_only_fields = ['user', 'follow_count', 'following_count']
+        read_only_fields = ['user', 'follow_count', 'following_count']
+
+    # def get_post(self):
+    #     user = self.context['request'].user
+    #     return user.post_user.all()
 
     def get_follow_count(self, obj: Profile) -> int:
-        """Give follow count of the user"""
+        """
+            Give follow count of the user
+        """
         return obj.follow.count()
 
     def get_following_count(self, obj: Profile) -> int:
         """Give following count of the user"""
         return obj.user.user_follow.count()
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """ Serializer for showing post of the follower user follow"""
-    profile = UserProfileSerializer(read_only=True)
-
-    class Meta:
-        model = User
-        # fields = '__all__'
-        exclude = ['password', 'last_login']
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -105,48 +105,3 @@ class DeleteUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
-
-
-class UserPostSerializer(serializers.ModelSerializer):
-    """Serializer for Post Model"""
-    like_count = serializers.SerializerMethodField()
-    comment_count = serializers.SerializerMethodField()
-    has_liked = serializers.SerializerMethodField()
-    # user = serializers.ReadOnlyField(source='user.id')
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Post
-        # fields = '__all__'
-        exclude = ['likes', 'comments']
-        # read_only_fields = ['user', 'likes', 'created_on', 'updated_on', 'comments',
-        #                     'like_count', 'comment_count', 'has_liked']
-
-    def get_has_liked(self, obj: Post) -> bool:
-        """Check if user likes post or not"""
-        user: User = self.context["request"].user
-        print(user)
-        return (
-                user.is_authenticated
-                and user.post_likes.filter(pk=obj.pk).exists()
-        )
-
-    def get_like_count(self, obj: Post) -> int:
-        """Give like count of the post"""
-        return obj.likes.count()
-
-    def get_comment_count(self, obj: Post) -> int:
-        """Give comment count of the post"""
-        return obj.comments.count()
-
-
-
-
-class UserFollowPostSerializer(UserPostSerializer):
-    """ Serializer for showing post of the follower user follow"""
-
-    class Meta:
-        model = Post
-        fields = '__all__'
-        # read_only_fields = ['user', 'likes', 'created_on', 'updated_on', 'comments',
-        #                     'like_count', 'comment_count', 'has_liked']

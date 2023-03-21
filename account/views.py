@@ -2,16 +2,16 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import status, serializers
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin, \
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, UpdateModelMixin, \
     ListModelMixin
 from rest_framework.permissions import IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from account.models import Post, Profile
-from account.serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
-    DeleteUserSerializer, UserPostSerializer, UserProfileSerializer, UserFollowPostSerializer, UserSerializer
-from account.utils import get_tokens_for_user
+from account.models import Profile
+from account.serializers.main_serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
+    DeleteUserSerializer, UserProfileSerializer, UserSerializer
+from post.utils import get_tokens_for_user
 
 
 class UserLogIn(GenericViewSet, CreateModelMixin):
@@ -105,38 +105,7 @@ class DeleteUser(GenericViewSet, DestroyModelMixin):
     permission_classes = [IsAdminUser]
 
 
-class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin):
-    """View to get, update and create post of login user"""
 
-    queryset = Post
-    serializer_class = UserPostSerializer
-    permission_classes = [IsAuthenticated]
-
-    # def perform_create(self, serializer):
-    #     """ Override perform_create method to make
-    #     sure the post is posted by the login user"""
-    #     serializer.save(user=self.request.user)
-
-    def get_queryset(self):
-        user = self.request.user
-        return Post.objects.filter(user=user)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        if serializer.validated_data['user'] != request.user:
-            return Response({'error': 'You cannot post for another user.'}, status=status.HTTP_403_FORBIDDEN)
-
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-class AllUserPost(GenericViewSet, ListModelMixin):
-    """View to get post of all user"""
-    queryset = Post.objects.all()
-    serializer_class = UserPostSerializer
-    permission_classes = [IsAuthenticated]
 
 
 class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin):
@@ -155,15 +124,7 @@ class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelM
     #     serializer.save(user=self.request.user)
 
 
-class UserFollowerPost(GenericViewSet, ListModelMixin):
-    """View to get post of the users followed by user"""
-    queryset = Post
-    serializer_class = UserFollowPostSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        follower_post = self.request.user.profile.follow.all()
-        return Post.objects.filter(user__in=follower_post)
 
 
 class UserView(GenericViewSet, ListModelMixin):
