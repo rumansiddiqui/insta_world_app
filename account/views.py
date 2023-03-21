@@ -1,12 +1,11 @@
 from django.contrib.auth.models import User
 
 from rest_framework import mixins, status
-from rest_framework.decorators import action, api_view
-from rest_framework.parsers import FileUploadParser
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from .models import UserProfile, Post, Video
+from .models import UserProfile, Post, Comment
 from .serializers import UserSerializer, ProfileSerializer, PostSerializer, CommentSerializer
 
 
@@ -23,17 +22,16 @@ class ProfileAPI(GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin,
     queryset = UserProfile.objects.all()
 
 
+class CommentAPI(GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin,
+                 mixins.UpdateModelMixin, mixins.DestroyModelMixin):
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+
+
 class PostAPI(GenericViewSet, mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin,
               mixins.UpdateModelMixin, mixins.DestroyModelMixin):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):

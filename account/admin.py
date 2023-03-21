@@ -5,7 +5,7 @@ from .models import UserProfile, Post, Image, Video, Comment
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'bio', 'pic')
+    list_display = ('user', 'bio', 'image')
     search_fields = ('user',)
 
 

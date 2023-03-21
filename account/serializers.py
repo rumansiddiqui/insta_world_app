@@ -89,9 +89,14 @@ class VideoSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    likes_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
-        fields = ('id', 'user')
+        fields = ('id', 'user', 'text', 'likes_count', 'commented_at')
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -119,22 +124,11 @@ class PostSerializer(serializers.ModelSerializer):
     def get_share_count(self, obj):
         return obj.shares.count()
 
-    # def get_share_name(self, obj):
-    #     obj = obj.shares.values_list('username', flat=True)
-    #     return obj
-
     def get_has_liked(self, obj):
         _user = self.context["request"].user
         return (
                 _user.is_authenticated and _user.users_likes.filter(pk=obj.pk).exists()
         )
-
-    #
-    # def get_has_commented(self, obj):
-    #     request = self.context.get('request')  # default value None
-    #     if request and request.user.is_authenticated:
-    #         return obj.comments.filter(user=request.user).exists()
-    #     return False
 
     def get_has_shared(self, obj):
         _user = self.context["request"].user
@@ -154,17 +148,17 @@ class PostSerializer(serializers.ModelSerializer):
         comments = []
 
         for image_data in images_data:
-            img = Image.objects.create(image=image_data, caption='Caption')
+            img = Image.objects.create(image=image_data)
             images.append(img)
         post.images.set(images)
 
         for video_data in videos_data:
-            vid = Video.objects.create(video=video_data, title='Title')
+            vid = Video.objects.create(video=video_data)
             videos.append(vid)
         post.videos.set(videos)
 
         for com_data in comment_data:
-            com = Comment.objects.create(text=com_data, user_id=1)
+            com = Comment.objects.create(text=com_data, user_id=self.context["request"].user.id)
             comments.append(com)
         post.comments.set(comments)
         post.save()
