@@ -12,6 +12,8 @@ router.register("changepassword", views.ChangePasswordApi, basename="changepassw
 router.register("userfollowerspost", views.UserFollowersPostApi, basename="followerspost")
 router.register("alluserpost", views.AllUserPost, basename="alluserpost")
 router.register("userlikespost", views.UserPostLikeApi, basename="userlikespost")
+router.register("savedpost", views.PostsSavedAPIView, basename="savedpost")
+# router.register("Commentpost", views.CommentApi, basename="commentpost")
 urlpatterns = [
 
 ]+router.urls

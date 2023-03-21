@@ -64,6 +64,7 @@ class SignInSerializers(serializers.ModelSerializer):
 class ProfileSerializers(serializers.ModelSerializer):
     followers = serializers.SerializerMethodField()
     followings = serializers.SerializerMethodField()
+    post_count = serializers.SerializerMethodField()
 
     def get_followers(self, obj: Profile):
         return obj.followers.count()
@@ -71,9 +72,12 @@ class ProfileSerializers(serializers.ModelSerializer):
     def get_followings(self, obj: Profile):
         return obj.followings.count()
 
+    def get_post_count(self, obj: Profile):
+        return obj.post.count()
+
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'followers', 'followings', 'profile_pic', 'bio')
+        fields = ('id', 'user', 'followers', 'followings', 'profile_pic', 'bio', 'post_count')
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -88,12 +92,6 @@ class VideoSerializer(serializers.ModelSerializer):
         fields = ('id', 'video')
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = ('id', 'comment')
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -105,9 +103,14 @@ class PostSerializers(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
-    image = ImageSerializer(many=True, required=False)
-    video = VideoSerializer(many=True, required=False)
+    has_saved = serializers.SerializerMethodField()
+    images = ImageSerializer(many=True, required=False)
+    videos = VideoSerializer(many=True, required=False)
     user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Post
+        exclude = ['likes', 'comments', 'saved_by']
 
     def get_comment_count(self, obj: Post):
         return obj.comments.count()
@@ -115,22 +118,40 @@ class PostSerializers(serializers.ModelSerializer):
     def get_likes_count(self, obj: Post):
         return obj.likes.count()
 
-    def get_has_liked(self, obj: Post):
+    # def get_has_liked(self, obj: Post):
+    #     user: User = self.context["request"].user
+    #     return user.is_authenticated and user in obj.likes.all()
+    #
+    def get_has_liked(self, obj: Post) -> bool:
         user: User = self.context["request"].user
-        return user.is_authenticated and user in obj.likes.all()
+        return user.is_authenticated and user.users_likes.filter(pk=obj.pk).exists()
 
-    class Meta:
-        model = Post
-        exclude = ['likes', 'comments']
+    def get_has_saved(self, obj: Post) -> bool:
+        user: User = self.context["request"].user
+        return user.is_authenticated and user.saved_posts.filter(pk=obj.pk).exists()
 
 
-class UserFollowersPostSerializer(PostSerializers):
+class UserFollowersPostSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Post
         fields = "__all__"
 
 
-class UserPostLikeSerializer(PostSerializers):
+class UserPostLikeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Post
         fields = "__all__"
+
+
+class CommentSerializer(PostSerializers):
+    class Meta:
+        model = Post
+        fields = "__all__"
+
+
+class PostSavedSerializer(PostSerializers):
+    pass

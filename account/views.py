@@ -6,7 +6,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import status, serializers
 from account.models import Profile, Post, Image, Video
 from account.serializers import SignUpSerializers, SignInSerializers, ProfileSerializers, \
-    PostSerializers, ChangePasswordSerializer, UserFollowersPostSerializer
+    PostSerializers, ChangePasswordSerializer, UserFollowersPostSerializer, \
+    PostSavedSerializer
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, \
     DestroyModelMixin, RetrieveModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -137,10 +138,33 @@ class UserFollowersPostApi(GenericViewSet, ListModelMixin, CreateModelMixin, Upd
 
 class UserPostLikeApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
                       DestroyModelMixin, RetrieveModelMixin):
-    serializer_class = UserFollowersPostSerializer
+    serializer_class = PostSerializers
     permission_classes = [IsAuthenticated]
     queryset = Post
 
     def get_queryset(self):
-        likes = self.request.user.likes.all()
-        return Post.objects.filter(user__in=likes)
+        user = self.request.user
+        return user.users_likes.all()
+
+
+class PostsSavedAPIView(GenericViewSet, ListModelMixin):
+    serializer_class = PostSavedSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.saved_posts.all()
+
+
+# class CommentApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
+#                  DestroyModelMixin, RetrieveModelMixin):
+#     serializer_class = CommentSerializer
+#     permission_classes = [IsAuthenticated]
+#     queryset = Comment
+#
+#     def get_queryset(self):
+#         user = self.request.user
+#         # comments = Comment.object.filter(comment=user)
+#         post = Post.objects.filter(comments__user=user)
+#         return post
+
