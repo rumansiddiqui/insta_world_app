@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import (
 )
 
 router = routers.SimpleRouter()
-router.register('signupapi', SignUpAPI, 'signupapi')
+router.register('signup', SignUpAPI, 'signup')
 router.register('profile', ProfileAPI, 'profile')
 router.register('post', PostAPI, 'post')
 router.register('postcomment', CommentAPI, 'postcomment')

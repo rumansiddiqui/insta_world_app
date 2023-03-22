@@ -71,9 +71,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    follower_count = serializers.SerializerMethodField()
+
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        exclude = ('followers', 'user')
+
+    def get_follower_count(self, obj):
+        return obj.followers.count()
 
 
 class ImageSerializer(serializers.ModelSerializer):

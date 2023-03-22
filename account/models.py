@@ -9,12 +9,17 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     image = models.ImageField(upload_to="img/", null=True, blank=True)
     bio = models.CharField(max_length=200, null=True, blank=True)
-    followers = models.ManyToManyField(User, related_name='following')
+    followers = models.ManyToManyField(User, related_name='followers')
+    following = models.ManyToManyField(User, related_name='following')
     created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.bio}"
 
 
 class Image(models.Model):
-    image = models.ImageField(upload_to='images/', validators=[FileExtensionValidator(allowed_extensions=['jpeg', 'png', 'jpg'])])
+    image = models.ImageField(upload_to='images/',
+                              validators=[FileExtensionValidator(allowed_extensions=['jpeg', 'png', 'jpg'])])
     caption = models.CharField(max_length=100, blank=True)
     created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
@@ -23,7 +28,8 @@ class Image(models.Model):
 
 
 class Video(models.Model):
-    video = models.FileField(upload_to='videos/', validators=[FileExtensionValidator(allowed_extensions=['mov', 'avi', 'mp4'])])
+    video = models.FileField(upload_to='videos/',
+                             validators=[FileExtensionValidator(allowed_extensions=['mov', 'avi', 'mp4'])])
     title = models.CharField(max_length=100, blank=True)
     created_on = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
@@ -52,7 +58,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
-        return self.user
+        return f"{self.caption}"
 
 
 class OTP(models.Model):
