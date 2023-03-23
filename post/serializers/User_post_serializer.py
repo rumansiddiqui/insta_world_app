@@ -16,7 +16,7 @@ class UserPostSerializer(serializers.ModelSerializer):
     comment_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
     # user = serializers.ReadOnlyField(source='user.id')
-    user = UserSerializer(read_only=True)
+    # user = UserSerializer(read_only=True)
 
     class Meta:
         model = Post

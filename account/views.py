@@ -9,9 +9,25 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from account.models import Profile
-from account.serializers.main_serializers import UserRegisterSerializer, UserLogInSerializer, UserChangePasswordSerializer, \
+from account.serializers.main_serializers import UserRegisterSerializer, UserLogInSerializer, \
+    UserChangePasswordSerializer, \
     DeleteUserSerializer, UserProfileSerializer, UserSerializer
 from post.utils import get_tokens_for_user
+
+
+class UserRegister(GenericViewSet, CreateModelMixin):
+    """View to register user"""
+    queryset = User.objects.all()
+    serializer_class = UserRegisterSerializer
+    http_method_names = ['post']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.create(serializer.validated_data)
+            return Response({"message": "User created successfully"},
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserLogIn(GenericViewSet, CreateModelMixin):
@@ -39,21 +55,6 @@ class UserLogIn(GenericViewSet, CreateModelMixin):
                              }, status=status.HTTP_200_OK)
         return Response({
             'data': serializer.errors}, status=status.HTTP_404_NOT_FOUND)
-
-
-class UserRegister(GenericViewSet, CreateModelMixin):
-    """View to register user"""
-    queryset = User.objects.all()
-    serializer_class = UserRegisterSerializer
-    http_method_names = ['post']
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            user = serializer.create(serializer.validated_data)
-            return Response({"message": "User created successfully"},
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserChangePassword(GenericViewSet, UpdateModelMixin):
@@ -105,9 +106,6 @@ class DeleteUser(GenericViewSet, DestroyModelMixin):
     permission_classes = [IsAdminUser]
 
 
-
-
-
 class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin):
     """View to get, update and create user profile"""
     queryset = Profile
@@ -118,13 +116,21 @@ class UserProfile(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelM
         user = self.request.user
         return Profile.objects.filter(user=user)
 
-    # def perform_create(self, serializer):
-    #     """ Override perform_create method to make
-    #     sure the post is posted by the login user"""
-    #     serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save(user=self.request.user)
+            return Response({"message": "User created successfully"},
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.serializer_class(data=request.data)
+    #     if serializer.is_valid(raise_exception=True):
+    #         user = serializer.create(serializer.validated_data)
+    #         return Response({"message": "User created successfully"},
+    #                         status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserView(GenericViewSet, ListModelMixin):

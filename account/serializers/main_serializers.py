@@ -3,35 +3,7 @@ from django.contrib.auth.models import User
 import re
 from account.models import Profile
 from account.serializers.user_serializers import UserSerializer
-from post.serializers.post_serializers import UserPostSerializer
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    """ Serializer for Profile model """
-    # post = UserPostSerializer(many=True, read_only=True, source='post_set')
-    # post = serializers.SerializerMethodField()
-    follow_count = serializers.SerializerMethodField()
-    following_count = serializers.SerializerMethodField()
-    user = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Profile
-        fields = ['id', 'user', 'avatar', 'bio', 'follow_count', 'following_count']
-        read_only_fields = ['user', 'follow_count', 'following_count']
-
-    # def get_post(self):
-    #     user = self.context['request'].user
-    #     return user.post_user.all()
-
-    def get_follow_count(self, obj: Profile) -> int:
-        """
-            Give follow count of the user
-        """
-        return obj.follow.count()
-
-    def get_following_count(self, obj: Profile) -> int:
-        """Give following count of the user"""
-        return obj.user.user_follow.count()
+from post.serializers.User_post_serializer import UserPostSerializer
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -105,3 +77,27 @@ class DeleteUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """ Serializer for Profile model """
+    post = UserPostSerializer(many=True, read_only=True, source='post_set')
+    follow_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ['id', 'user', 'avatar', 'bio', 'follow_count', 'following_count', 'post']
+        read_only_fields = ['user', 'follow_count', 'following_count']
+
+    def get_follow_count(self, obj: Profile) -> int:
+        """
+            Give follow count of the user
+        """
+        return obj.follow.count()
+
+    def get_following_count(self, obj: Profile) -> int:
+        """Give following count of the user"""
+        return obj.user.user_follow.count()
+

@@ -1,5 +1,5 @@
 from rest_framework import status
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -29,7 +29,7 @@ class AllUserPost(GenericViewSet, ListModelMixin):
     permission_classes = [IsAuthenticated]
 
 
-class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin):
+class UserPost(GenericViewSet, CreateModelMixin, ListModelMixin, UpdateModelMixin, DestroyModelMixin):
     """View to get, update and create post of login user"""
 
     queryset = Post
