@@ -6,8 +6,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import status, serializers
 from account.models import Profile, Post, Image, Video
 from account.serializers import SignUpSerializers, SignInSerializers, ProfileSerializers, \
-    PostSerializers, ChangePasswordSerializer, UserFollowersPostSerializer, \
-    PostSavedSerializer
+    PostSerializers, ChangePasswordSerializer, UserFollowersPostSerializer, PostListSerializer, PostSavedSerializer, \
+    PostLikeSerializer
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, \
     DestroyModelMixin, RetrieveModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -97,29 +97,12 @@ class PostApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin
     queryset = Post.objects.all()
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            post = serializer.save()
-            for image in request.FILES.getlist('image'):
-                image = Image(image=image)
-                image.save()
-                post.image.add(image)
-                post.save()
-            for video in request.FILES.getlist('video'):
-                video = Video(video=video)
-                video.save()
-                post.video.add(video)
-                post.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=400)
-
     def get_queryset(self):
         user = self.request.user
         return Post.objects.filter(user=user)
 
 
-class AllUserPost(GenericViewSet, ListModelMixin):
+class AllUserPostApi(GenericViewSet, ListModelMixin):
     serializer_class = PostSerializers
     queryset = Post.objects.all()
     permission_classes = [IsAuthenticated]
@@ -129,7 +112,7 @@ class UserFollowersPostApi(GenericViewSet, ListModelMixin, CreateModelMixin, Upd
                            DestroyModelMixin, RetrieveModelMixin):
     serializer_class = UserFollowersPostSerializer
     permission_classes = [IsAuthenticated]
-    queryset = Post
+    queryset = Post.objects.all()
 
     def get_queryset(self):
         posts = self.request.user.profile.followers.all()
@@ -147,7 +130,8 @@ class UserPostLikeApi(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateMo
         return user.users_likes.all()
 
 
-class PostsSavedAPIView(GenericViewSet, ListModelMixin):
+class PostsSavedAPIView(GenericViewSet, ListModelMixin, CreateModelMixin, UpdateModelMixin,
+                        DestroyModelMixin, RetrieveModelMixin):
     serializer_class = PostSavedSerializer
     permission_classes = [IsAuthenticated]
 
@@ -168,3 +152,26 @@ class PostsSavedAPIView(GenericViewSet, ListModelMixin):
 #         post = Post.objects.filter(comments__user=user)
 #         return post
 
+
+class PostListView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
+    serializer_class = PostListSerializer
+    queryset = Post.objects.all()
+       # permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.query_params.get('user_id')
+        print(user)
+        serializers = PostListSerializer(Post.objects.filter(user__id=user), many=True)
+        return Response(serializers.data)
+
+
+class PostLikeView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
+    serializer_class = PostLikeSerializer
+    queryset = Post.objects.all()
+    # permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.query_params.get('user_id')
+        print(user)
+        serializers = PostListSerializer(Post.objects.filter(user__id=user), many=True)
+        return Response(serializers.data)

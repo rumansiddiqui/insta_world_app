@@ -130,6 +130,35 @@ class PostSerializers(serializers.ModelSerializer):
         user: User = self.context["request"].user
         return user.is_authenticated and user.saved_posts.filter(pk=obj.pk).exists()
 
+    def create(self, validated_data):
+        images_data = self.context.get('request').FILES.getlist('images', [])
+        videos_data = self.context.get('request').FILES.getlist('videos', [])
+        comment_data = self.initial_data.getlist('comments', [])
+
+        post = Post.objects.create(**validated_data, user=self.context['request'].user)
+
+        images = []
+        videos = []
+        comments = []
+
+        for image_data in images_data:
+            img = Image.objects.create(image=image_data)
+            images.append(img)
+        post.images.set(images)
+
+        for video_data in videos_data:
+            vid = Video.objects.create(video=video_data)
+            videos.append(vid)
+        post.videos.set(videos)
+
+        for com_data in comment_data:
+            com = Comment.objects.create(text=com_data, user_id=self.context["request"].user.id)
+            comments.append(com)
+        post.comments.set(comments)
+        post.save()
+
+        return post
+
 
 class UserFollowersPostSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -153,5 +182,24 @@ class CommentSerializer(PostSerializers):
         fields = "__all__"
 
 
+class PostListSerializer(serializers.ModelSerializer):
+    images = ImageSerializer(many=True, required=False)
+    videos = VideoSerializer(many=True, required=False)
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Post
+        exclude = ['likes', 'comments', 'saved_by']
+
+
 class PostSavedSerializer(PostSerializers):
+    user = UserSerializer(read_only=True)
     pass
+
+
+class PostLikeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Post
+        exclude = ['likes', 'comments', 'saved_by']
